@@ -588,7 +588,7 @@ body {
 
 /* Setting description */
 .setting-description {
-    font-size: 0.5rem;
+    font-size: 0.55rem;
     color: #888;
     margin-top: 5px;
     font-style: italic;
@@ -596,8 +596,8 @@ body {
 
 /* Setting hint text */
 .setting-hint {
-    font-size: 0.45rem;
-    color: #666;
+    font-size: 0.55rem;
+    color: #888;
     margin-top: 5px;
     text-align: center;
 }

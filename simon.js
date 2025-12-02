@@ -265,7 +265,7 @@ class AudioManager {
         gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
         gainNode.gain.linearRampToValueAtTime(0.8, this.audioContext.currentTime + attackTime);
         gainNode.gain.linearRampToValueAtTime(sustainLevel, this.audioContext.currentTime + attackTime + decayTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+        gainNode.gain.linearRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
         
         oscillator.start(this.audioContext.currentTime);
         oscillator.stop(this.audioContext.currentTime + duration);
@@ -298,7 +298,7 @@ class AudioManager {
         // Quick attack, fast decay for percussion
         gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
         gainNode.gain.linearRampToValueAtTime(1, this.audioContext.currentTime + 0.005);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration * 0.8);
+        gainNode.gain.linearRampToValueAtTime(0.001, this.audioContext.currentTime + duration * 0.8);
         
         oscillator.start(this.audioContext.currentTime);
         oscillator.stop(this.audioContext.currentTime + duration);
@@ -324,7 +324,7 @@ class AudioManager {
         oscillator.type = 'sawtooth';
         
         gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.5);
+        gainNode.gain.linearRampToValueAtTime(0.001, this.audioContext.currentTime + 0.5);
         
         oscillator.start(this.audioContext.currentTime);
         oscillator.stop(this.audioContext.currentTime + 0.5);
