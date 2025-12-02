@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Standard meta tags for responsive design and character encoding -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simon Memory Game</title>
+    
+    <!-- External stylesheets -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts - Retro gaming font for authentic look -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Main game container - centers all content -->
+    <div class="game-container">
+        <!-- Game header section with title and high score display -->
+        <div class="game-header">
+            <h1 class="game-title">SIMON</h1>
+            <!-- High score display - persisted in localStorage -->
+            <div class="high-score">High Score: <span id="high-score">0</span></div>
+        </div>
+
+        <!-- 2x2 grid of colored game buttons -->
+        <div class="game-board" id="game-board">
+            <!-- Green button (top-left) - index 0 -->
+            <button class="game-button green" id="btn-0" data-color="0" aria-label="Green button">
+                <span class="sr-only">Green</span>
+            </button>
+            <!-- Red button (top-right) - index 1 -->
+            <button class="game-button red" id="btn-1" data-color="1" aria-label="Red button">
+                <span class="sr-only">Red</span>
+            </button>
+            <!-- Yellow button (bottom-left) - index 2 -->
+            <button class="game-button yellow" id="btn-2" data-color="2" aria-label="Yellow button">
+                <span class="sr-only">Yellow</span>
+            </button>
+            <!-- Blue button (bottom-right) - index 3 -->
+            <button class="game-button blue" id="btn-3" data-color="3" aria-label="Blue button">
+                <span class="sr-only">Blue</span>
+            </button>
+        </div>
+
+        <!-- Message display area for game instructions and feedback -->
+        <div class="game-message" id="game-message">
+            <div class="message-text" id="message-text">Press Any Key to Start</div>
+        </div>
+
+        <!-- Control panel with sound toggle, difficulty selector, and weather -->
+        <div class="game-controls">
+            <!-- Sound on/off toggle button -->
+            <button class="control-btn" id="volume-btn" aria-label="Toggle sound">🔊</button>
+            <!-- Difficulty level selector -->
+            <select class="difficulty-select" id="difficulty">
+                <option value="easy">Easy</option>
+                <option value="normal" selected>Normal</option>
+                <option value="hard">Hard</option>
+            </select>
+            <!-- Weather information button -->
+            <button class="control-btn weather-btn" id="weather-btn" aria-label="Show weather for Lanchester, Durham">🌤️</button>
+        </div>
+    </div>
+
+    <!-- Weather modal overlay -->
+    <div class="weather-modal-overlay" id="weather-modal">
+        <div class="weather-modal-content">
+            <div class="weather-modal-header">
+                <h3 class="weather-title">LANCHESTER WEATHER</h3>
+                <button class="weather-close-btn" id="weather-close-btn" aria-label="Close weather">&times;</button>
+            </div>
+            <div class="weather-info" id="weather-info">
+                <!-- Weather data will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Main game logic JavaScript file -->
+    <script src="simon.js"></script>
+</body>
+</html>
