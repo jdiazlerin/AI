@@ -8,6 +8,7 @@
  * - Keyboard and touch controls
  * - High score persistence
  * - Accessibility features
+ * - Dynamic color theme system
  */
 class SimonGame {
     constructor() {
@@ -20,6 +21,10 @@ class SimonGame {
         this.currentStep = 0;        // Current step in player input
         this.soundEnabled = true;    // Audio on/off toggle
         this.difficulty = 'normal';  // Current difficulty level
+        
+        // Theme system
+        this.currentTheme = localStorage.getItem('simonTheme') || 'classic';
+        this.availableThemes = ['classic', 'cyberpunk', 'synthwave', 'high-contrast', 'colorblind'];
         
         // Weather functionality
         this.weatherData = null;     // Cached weather data
@@ -58,12 +63,83 @@ class SimonGame {
      */
     init() {
         this.initAudio();
+        this.initTheme();
         this.bindEvents();
         this.updateDisplay();
         this.updateHighScore();
         
         // Set up global keyboard listener for accessibility
         document.addEventListener('keydown', this.handleKeyPress.bind(this));
+    }
+    
+    /**
+     * Initialize theme system - load saved theme or detect system preference
+     */
+    initTheme() {
+        // Check for saved theme preference
+        const savedTheme = localStorage.getItem('simonTheme');
+        
+        if (savedTheme && this.availableThemes.includes(savedTheme)) {
+            this.setTheme(savedTheme);
+        } else {
+            // Check system preference for high contrast
+            if (window.matchMedia('(prefers-contrast: high)').matches) {
+                this.setTheme('high-contrast');
+            } else {
+                this.setTheme('classic');
+            }
+        }
+        
+        // Update theme selector to show current theme
+        const themeSelect = document.getElementById('theme-select');
+        if (themeSelect) {
+            themeSelect.value = this.currentTheme;
+        }
+        
+        // Listen for system preference changes
+        window.matchMedia('(prefers-contrast: high)').addEventListener('change', (e) => {
+            if (e.matches && this.currentTheme === 'classic') {
+                this.setTheme('high-contrast');
+            }
+        });
+    }
+    
+    /**
+     * Set the current theme and persist to localStorage
+     * @param {string} themeName - Name of the theme to apply
+     */
+    setTheme(themeName) {
+        if (!this.availableThemes.includes(themeName)) {
+            console.warn(`Theme "${themeName}" not found. Using classic theme.`);
+            themeName = 'classic';
+        }
+        
+        this.currentTheme = themeName;
+        
+        // Apply theme to document
+        if (themeName === 'classic') {
+            document.documentElement.removeAttribute('data-theme');
+        } else {
+            document.documentElement.setAttribute('data-theme', themeName);
+        }
+        
+        // Persist theme preference
+        localStorage.setItem('simonTheme', themeName);
+        
+        // Update theme selector UI if it exists
+        const themeSelect = document.getElementById('theme-select');
+        if (themeSelect && themeSelect.value !== themeName) {
+            themeSelect.value = themeName;
+        }
+    }
+    
+    /**
+     * Handle theme selection change from dropdown
+     * @param {Event} e - Change event from theme selector
+     */
+    handleThemeChange(e) {
+        const newTheme = e.target.value;
+        this.setTheme(newTheme);
     }
     
     /**
@@ -95,6 +171,12 @@ class SimonGame {
         // Control panel events
         document.getElementById('volume-btn').addEventListener('click', this.toggleSound.bind(this));
         document.getElementById('difficulty').addEventListener('change', this.changeDifficulty.bind(this));
+        
+        // Theme selector event
+        const themeSelect = document.getElementById('theme-select');
+        if (themeSelect) {
+            themeSelect.addEventListener('change', this.handleThemeChange.bind(this));
+        }
         
         // Weather button and modal events
         document.getElementById('weather-btn').addEventListener('click', this.showWeatherModal.bind(this));
