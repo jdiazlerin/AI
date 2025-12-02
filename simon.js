@@ -1,4 +1,358 @@
 /**
+ * AudioManager Class - Advanced audio system with sound packs and customization
+ * 
+ * Features:
+ * - Multiple sound packs (Classic, 8-Bit, Nature, Sci-Fi, Percussion, Musical)
+ * - Individual volume controls
+ * - Tempo adjustment
+ * - Real-time audio visualization
+ * - Visual indicators for accessibility
+ */
+class AudioManager {
+    constructor() {
+        this.audioContext = null;
+        this.analyser = null;
+        this.masterGain = null;
+        this.currentPack = 'classic';
+        this.masterVolume = 0.7;
+        this.effectsVolume = 0.8;
+        this.tempo = 1.0; // 1.0 = normal speed
+        this.visualizationEnabled = true;
+        this.visualIndicatorsEnabled = true;
+        
+        // Sound pack definitions
+        this.soundPacks = {
+            classic: {
+                name: 'Classic Tones',
+                description: 'Pure sine wave musical notes',
+                sounds: [261.63, 329.63, 392.00, 440.00], // C4, E4, G4, A4
+                type: 'generated',
+                waveform: 'sine',
+                colors: ['#4CAF50', '#F44336', '#FFEB3B', '#2196F3']
+            },
+            retro8bit: {
+                name: '8-Bit Retro',
+                description: 'Square wave chip-tune sounds',
+                sounds: [262, 330, 392, 440],
+                type: 'generated',
+                waveform: 'square',
+                colors: ['#00ff00', '#ff0000', '#ffff00', '#00ffff']
+            },
+            nature: {
+                name: 'Nature Sounds',
+                description: 'Natural frequency tones',
+                sounds: [196.00, 246.94, 293.66, 349.23], // G3, B3, D4, F4
+                type: 'generated',
+                waveform: 'triangle',
+                colors: ['#228B22', '#8B4513', '#87CEEB', '#FFD700']
+            },
+            scifi: {
+                name: 'Sci-Fi',
+                description: 'Futuristic space sounds',
+                sounds: [523.25, 659.25, 783.99, 880.00], // C5, E5, G5, A5
+                type: 'generated',
+                waveform: 'sawtooth',
+                colors: ['#00CED1', '#FF1493', '#7CFC00', '#FF6347']
+            },
+            percussion: {
+                name: 'Percussion',
+                description: 'Drum-like percussive sounds',
+                sounds: [80, 120, 200, 300], // Low frequencies for drum sounds
+                type: 'percussion',
+                waveform: 'triangle',
+                colors: ['#8B4513', '#CD853F', '#D2691E', '#A0522D']
+            },
+            musical: {
+                name: 'Musical',
+                description: 'Piano-like musical tones',
+                sounds: [293.66, 369.99, 440.00, 523.25], // D4, F#4, A4, C5
+                type: 'generated',
+                waveform: 'sine',
+                colors: ['#9932CC', '#FF69B4', '#00FA9A', '#FFD700']
+            }
+        };
+        
+        this.init();
+        this.loadSettings();
+    }
+    
+    /**
+     * Initialize Web Audio API components
+     */
+    init() {
+        try {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Create master gain node for volume control
+            this.masterGain = this.audioContext.createGain();
+            this.masterGain.gain.value = this.masterVolume * this.effectsVolume;
+            this.masterGain.connect(this.audioContext.destination);
+            
+            // Create analyser for visualization
+            this.analyser = this.audioContext.createAnalyser();
+            this.analyser.fftSize = 256;
+            this.analyser.connect(this.masterGain);
+            
+        } catch (e) {
+            console.warn('Web Audio API not supported:', e);
+        }
+    }
+    
+    /**
+     * Load audio settings from localStorage
+     */
+    loadSettings() {
+        const savedSettings = localStorage.getItem('simonAudioSettings');
+        if (savedSettings) {
+            try {
+                const settings = JSON.parse(savedSettings);
+                this.currentPack = settings.currentPack || 'classic';
+                this.masterVolume = settings.masterVolume ?? 0.7;
+                this.effectsVolume = settings.effectsVolume ?? 0.8;
+                this.tempo = settings.tempo ?? 1.0;
+                this.visualizationEnabled = settings.visualizationEnabled ?? true;
+                this.visualIndicatorsEnabled = settings.visualIndicatorsEnabled ?? true;
+                this.updateGain();
+            } catch (e) {
+                console.warn('Error loading audio settings:', e);
+            }
+        }
+    }
+    
+    /**
+     * Save audio settings to localStorage
+     */
+    saveSettings() {
+        const settings = {
+            currentPack: this.currentPack,
+            masterVolume: this.masterVolume,
+            effectsVolume: this.effectsVolume,
+            tempo: this.tempo,
+            visualizationEnabled: this.visualizationEnabled,
+            visualIndicatorsEnabled: this.visualIndicatorsEnabled
+        };
+        localStorage.setItem('simonAudioSettings', JSON.stringify(settings));
+    }
+    
+    /**
+     * Update master gain node with current volume settings
+     */
+    updateGain() {
+        if (this.masterGain) {
+            this.masterGain.gain.value = this.masterVolume * this.effectsVolume;
+        }
+    }
+    
+    /**
+     * Set the current sound pack
+     * @param {string} packName - Name of the sound pack to use
+     */
+    setSoundPack(packName) {
+        if (this.soundPacks[packName]) {
+            this.currentPack = packName;
+            this.saveSettings();
+        }
+    }
+    
+    /**
+     * Set master volume
+     * @param {number} volume - Volume level (0.0 to 1.0)
+     */
+    setMasterVolume(volume) {
+        this.masterVolume = Math.max(0, Math.min(1, volume));
+        this.updateGain();
+        this.saveSettings();
+    }
+    
+    /**
+     * Set effects volume
+     * @param {number} volume - Volume level (0.0 to 1.0)
+     */
+    setEffectsVolume(volume) {
+        this.effectsVolume = Math.max(0, Math.min(1, volume));
+        this.updateGain();
+        this.saveSettings();
+    }
+    
+    /**
+     * Set tempo multiplier
+     * @param {number} tempo - Tempo multiplier (0.5 to 2.0)
+     */
+    setTempo(tempo) {
+        this.tempo = Math.max(0.5, Math.min(2.0, tempo));
+        this.saveSettings();
+    }
+    
+    /**
+     * Toggle audio visualization
+     * @param {boolean} enabled - Whether visualization is enabled
+     */
+    setVisualization(enabled) {
+        this.visualizationEnabled = enabled;
+        this.saveSettings();
+    }
+    
+    /**
+     * Toggle visual indicators for accessibility
+     * @param {boolean} enabled - Whether visual indicators are enabled
+     */
+    setVisualIndicators(enabled) {
+        this.visualIndicatorsEnabled = enabled;
+        this.saveSettings();
+    }
+    
+    /**
+     * Get current sound pack configuration
+     * @returns {Object} Current sound pack object
+     */
+    getCurrentPack() {
+        return this.soundPacks[this.currentPack];
+    }
+    
+    /**
+     * Get all available sound packs
+     * @returns {Object} All sound packs
+     */
+    getAllPacks() {
+        return this.soundPacks;
+    }
+    
+    /**
+     * Play a sound for a specific button
+     * @param {number} buttonIndex - Index of the button (0-3)
+     * @param {number} duration - Duration of sound in seconds
+     */
+    playSound(buttonIndex, duration = 0.3) {
+        if (!this.audioContext || this.masterVolume === 0) return;
+        
+        // Resume audio context if suspended (browser requirement)
+        if (this.audioContext.state === 'suspended') {
+            this.audioContext.resume();
+        }
+        
+        const pack = this.getCurrentPack();
+        const frequency = pack.sounds[buttonIndex];
+        
+        if (pack.type === 'percussion') {
+            this.playPercussionSound(frequency, duration);
+        } else {
+            this.playToneSound(frequency, pack.waveform, duration);
+        }
+    }
+    
+    /**
+     * Play a generated tone sound
+     * @param {number} frequency - Frequency in Hz
+     * @param {string} waveform - Waveform type (sine, square, triangle, sawtooth)
+     * @param {number} duration - Duration in seconds
+     */
+    playToneSound(frequency, waveform, duration) {
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(this.analyser);
+        
+        oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+        oscillator.type = waveform;
+        
+        // Configure ADSR envelope
+        const attackTime = 0.01;
+        const decayTime = 0.1;
+        const sustainLevel = 0.6;
+        const releaseTime = duration - attackTime - decayTime;
+        
+        gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.8, this.audioContext.currentTime + attackTime);
+        gainNode.gain.linearRampToValueAtTime(sustainLevel, this.audioContext.currentTime + attackTime + decayTime);
+        gainNode.gain.linearRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
+        
+        oscillator.start(this.audioContext.currentTime);
+        oscillator.stop(this.audioContext.currentTime + duration);
+    }
+    
+    /**
+     * Play a percussion-style sound
+     * @param {number} frequency - Base frequency in Hz
+     * @param {number} duration - Duration in seconds
+     */
+    playPercussionSound(frequency, duration) {
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        const filter = this.audioContext.createBiquadFilter();
+        
+        oscillator.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(this.analyser);
+        
+        // Percussion uses frequency sweep
+        oscillator.frequency.setValueAtTime(frequency * 2, this.audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(frequency, this.audioContext.currentTime + 0.1);
+        oscillator.type = 'triangle';
+        
+        // Low-pass filter for warmer sound
+        filter.type = 'lowpass';
+        filter.frequency.value = 2000;
+        filter.Q.value = 1;
+        
+        // Quick attack, fast decay for percussion
+        gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(1, this.audioContext.currentTime + 0.005);
+        gainNode.gain.linearRampToValueAtTime(0.001, this.audioContext.currentTime + duration * 0.8);
+        
+        oscillator.start(this.audioContext.currentTime);
+        oscillator.stop(this.audioContext.currentTime + duration);
+    }
+    
+    /**
+     * Play error sound
+     */
+    playErrorSound() {
+        if (!this.audioContext || this.masterVolume === 0) return;
+        
+        if (this.audioContext.state === 'suspended') {
+            this.audioContext.resume();
+        }
+        
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(this.analyser);
+        
+        oscillator.frequency.setValueAtTime(150, this.audioContext.currentTime);
+        oscillator.type = 'sawtooth';
+        
+        gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.001, this.audioContext.currentTime + 0.5);
+        
+        oscillator.start(this.audioContext.currentTime);
+        oscillator.stop(this.audioContext.currentTime + 0.5);
+    }
+    
+    /**
+     * Get frequency data for visualization
+     * @returns {Uint8Array} Frequency data array
+     */
+    getFrequencyData() {
+        if (!this.analyser) return new Uint8Array(0);
+        
+        const dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+        this.analyser.getByteFrequencyData(dataArray);
+        return dataArray;
+    }
+    
+    /**
+     * Get adjusted delay based on tempo
+     * @param {number} baseDelay - Base delay in milliseconds
+     * @returns {number} Adjusted delay
+     */
+    getTempoAdjustedDelay(baseDelay) {
+        return baseDelay / this.tempo;
+    }
+}
+
+/**
  * SimonGame Class - Main game logic for the Simon memory game
  * 
  * Features:
@@ -8,6 +362,7 @@
  * - Keyboard and touch controls
  * - High score persistence
  * - Accessibility features
+ * - Advanced audio system with sound packs
  * - Dynamic color theme system
  */
 class SimonGame {
@@ -51,9 +406,17 @@ class SimonGame {
             hard: { sequenceDelay: 400, inputTimeout: 3000, gapDelay: 100 }
         };
         
-        // Musical frequencies for each button (C4, E4, G4, A4 notes)
+        // Musical frequencies for each button (C4, E4, G4, A4 notes) - legacy fallback
         this.buttonFrequencies = [261.63, 329.63, 392.00, 440.00];
-        this.audioContext = null; // Web Audio API context
+        this.audioContext = null; // Web Audio API context (legacy)
+        
+        // Initialize advanced audio manager
+        this.audioManager = new AudioManager();
+        
+        // Audio visualization
+        this.visualizationCanvas = null;
+        this.visualizationCtx = null;
+        this.animationFrameId = null;
         
         this.init();
     }
@@ -67,12 +430,15 @@ class SimonGame {
         this.bindEvents();
         this.updateDisplay();
         this.updateHighScore();
+        this.initAudioSettingsModal();
+        this.initVisualization();
         
         // Set up global keyboard listener for accessibility
         document.addEventListener('keydown', this.handleKeyPress.bind(this));
     }
     
     /**
+     * Initialize Web Audio API context for sound effects (legacy fallback)
      * Initialize theme system - load saved theme or detect system preference
      */
     initTheme() {
@@ -154,6 +520,86 @@ class SimonGame {
     }
     
     /**
+     * Initialize audio settings modal
+     */
+    initAudioSettingsModal() {
+        // Set initial UI values from audio manager
+        const packSelect = document.getElementById('sound-pack-select');
+        const masterVolume = document.getElementById('master-volume');
+        const effectsVolume = document.getElementById('effects-volume');
+        const tempoSlider = document.getElementById('tempo-slider');
+        const visualToggle = document.getElementById('visual-indicators-toggle');
+        
+        if (packSelect) {
+            packSelect.value = this.audioManager.currentPack;
+            this.updateSoundPackDescription(this.audioManager.currentPack);
+        }
+        if (masterVolume) {
+            masterVolume.value = this.audioManager.masterVolume * 100;
+            this.updateVolumeLabel('master-volume-label', this.audioManager.masterVolume * 100);
+        }
+        if (effectsVolume) {
+            effectsVolume.value = this.audioManager.effectsVolume * 100;
+            this.updateVolumeLabel('effects-volume-label', this.audioManager.effectsVolume * 100);
+        }
+        if (tempoSlider) {
+            tempoSlider.value = this.audioManager.tempo * 100;
+            this.updateTempoLabel(this.audioManager.tempo * 100);
+        }
+        if (visualToggle) {
+            visualToggle.checked = this.audioManager.visualIndicatorsEnabled;
+        }
+    }
+    
+    /**
+     * Initialize audio visualization canvas
+     */
+    initVisualization() {
+        this.visualizationCanvas = document.getElementById('audio-visualization');
+        if (this.visualizationCanvas) {
+            this.visualizationCtx = this.visualizationCanvas.getContext('2d');
+            // Set canvas size
+            this.visualizationCanvas.width = 300;
+            this.visualizationCanvas.height = 60;
+        }
+    }
+    
+    /**
+     * Update volume label display
+     * @param {string} labelId - ID of the label element
+     * @param {number} value - Volume value (0-100)
+     */
+    updateVolumeLabel(labelId, value) {
+        const label = document.getElementById(labelId);
+        if (label) {
+            label.textContent = `${Math.round(value)}%`;
+        }
+    }
+    
+    /**
+     * Update tempo label display
+     * @param {number} value - Tempo value (50-200)
+     */
+    updateTempoLabel(value) {
+        const label = document.getElementById('tempo-label');
+        if (label) {
+            const tempoValue = value / 100;
+            label.textContent = `${tempoValue.toFixed(1)}x`;
+        }
+    }
+    
+    /**
+     * Update sound pack description display
+     * @param {string} packName - Name of the selected sound pack
+     */
+    updateSoundPackDescription(packName) {
+        const description = document.getElementById('sound-pack-description');
+        if (description && this.audioManager.soundPacks[packName]) {
+            description.textContent = this.audioManager.soundPacks[packName].description;
+        }
+    }
+    
+    /**
      * Bind all event listeners for user interactions
      */
     bindEvents() {
@@ -187,6 +633,80 @@ class SimonGame {
             }
         });
         
+        // Audio settings button and modal events
+        const audioSettingsBtn = document.getElementById('audio-settings-btn');
+        const audioSettingsModal = document.getElementById('audio-settings-modal');
+        const audioSettingsCloseBtn = document.getElementById('audio-settings-close-btn');
+        
+        if (audioSettingsBtn) {
+            audioSettingsBtn.addEventListener('click', this.showAudioSettingsModal.bind(this));
+        }
+        if (audioSettingsCloseBtn) {
+            audioSettingsCloseBtn.addEventListener('click', this.hideAudioSettingsModal.bind(this));
+        }
+        if (audioSettingsModal) {
+            audioSettingsModal.addEventListener('click', (e) => {
+                if (e.target.id === 'audio-settings-modal') {
+                    this.hideAudioSettingsModal();
+                }
+            });
+        }
+        
+        // Sound pack selector
+        const packSelect = document.getElementById('sound-pack-select');
+        if (packSelect) {
+            packSelect.addEventListener('change', (e) => {
+                this.audioManager.setSoundPack(e.target.value);
+                this.updateSoundPackDescription(e.target.value);
+                this.playPreviewSound();
+            });
+        }
+        
+        // Volume sliders
+        const masterVolume = document.getElementById('master-volume');
+        if (masterVolume) {
+            masterVolume.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.audioManager.setMasterVolume(value / 100);
+                this.updateVolumeLabel('master-volume-label', value);
+            });
+            masterVolume.addEventListener('change', () => this.playPreviewSound());
+        }
+        
+        const effectsVolume = document.getElementById('effects-volume');
+        if (effectsVolume) {
+            effectsVolume.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.audioManager.setEffectsVolume(value / 100);
+                this.updateVolumeLabel('effects-volume-label', value);
+            });
+            effectsVolume.addEventListener('change', () => this.playPreviewSound());
+        }
+        
+        // Tempo slider
+        const tempoSlider = document.getElementById('tempo-slider');
+        if (tempoSlider) {
+            tempoSlider.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                this.audioManager.setTempo(value / 100);
+                this.updateTempoLabel(value);
+            });
+        }
+        
+        // Visual indicators toggle
+        const visualToggle = document.getElementById('visual-indicators-toggle');
+        if (visualToggle) {
+            visualToggle.addEventListener('change', (e) => {
+                this.audioManager.setVisualIndicators(e.target.checked);
+            });
+        }
+        
+        // Preview sound button
+        const previewBtn = document.getElementById('preview-sound-btn');
+        if (previewBtn) {
+            previewBtn.addEventListener('click', () => this.playPreviewSequence());
+        }
+        
         // Keyboard controls (Q, W, A, S keys map to buttons 0, 1, 2, 3)
         document.addEventListener('keydown', (e) => {
             if (this.currentState === this.gameStates.PLAYING && !this.isShowingSequence) {
@@ -196,11 +716,131 @@ class SimonGame {
                 }
             }
             
-            // Escape key closes weather modal
+            // Escape key closes modals
             if (e.key === 'Escape') {
                 this.hideWeatherModal();
+                this.hideAudioSettingsModal();
             }
         });
+    }
+    
+    /**
+     * Show audio settings modal
+     */
+    showAudioSettingsModal() {
+        const modal = document.getElementById('audio-settings-modal');
+        if (modal) {
+            modal.classList.add('show');
+            this.startVisualization();
+        }
+    }
+    
+    /**
+     * Hide audio settings modal
+     */
+    hideAudioSettingsModal() {
+        const modal = document.getElementById('audio-settings-modal');
+        if (modal) {
+            modal.classList.remove('show');
+            this.stopVisualization();
+        }
+    }
+    
+    /**
+     * Play a preview sound to test current settings
+     */
+    playPreviewSound() {
+        if (this.soundEnabled) {
+            this.audioManager.playSound(0, 0.3);
+        }
+    }
+    
+    /**
+     * Play a preview sequence of all buttons
+     */
+    async playPreviewSequence() {
+        if (!this.soundEnabled) return;
+        
+        for (let i = 0; i < 4; i++) {
+            this.audioManager.playSound(i, 0.3);
+            this.showVisualIndicator(i, 200);
+            await this.delay(300);
+        }
+    }
+    
+    /**
+     * Show visual indicator for a button (accessibility feature)
+     * @param {number} buttonIndex - Index of the button
+     * @param {number} duration - Duration of indicator in milliseconds
+     */
+    showVisualIndicator(buttonIndex, duration) {
+        if (!this.audioManager.visualIndicatorsEnabled) return;
+        
+        const indicator = document.getElementById(`visual-indicator-${buttonIndex}`);
+        if (indicator) {
+            indicator.classList.add('active');
+            setTimeout(() => {
+                indicator.classList.remove('active');
+            }, duration);
+        }
+    }
+    
+    /**
+     * Start audio visualization animation
+     */
+    startVisualization() {
+        if (!this.visualizationCanvas || !this.audioManager.visualizationEnabled) return;
+        
+        const draw = () => {
+            this.animationFrameId = requestAnimationFrame(draw);
+            this.drawVisualization();
+        };
+        draw();
+    }
+    
+    /**
+     * Stop audio visualization animation
+     */
+    stopVisualization() {
+        if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
+            this.animationFrameId = null;
+        }
+        // Clear canvas
+        if (this.visualizationCtx) {
+            this.visualizationCtx.fillStyle = 'rgba(26, 26, 46, 1)';
+            this.visualizationCtx.fillRect(0, 0, this.visualizationCanvas.width, this.visualizationCanvas.height);
+        }
+    }
+    
+    /**
+     * Draw audio visualization on canvas
+     */
+    drawVisualization() {
+        if (!this.visualizationCtx || !this.audioManager) return;
+        
+        const canvas = this.visualizationCanvas;
+        const ctx = this.visualizationCtx;
+        const frequencyData = this.audioManager.getFrequencyData();
+        
+        // Clear canvas with semi-transparent background for trailing effect
+        ctx.fillStyle = 'rgba(26, 26, 46, 0.3)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw frequency bars
+        const barWidth = canvas.width / frequencyData.length * 2;
+        let x = 0;
+        
+        for (let i = 0; i < frequencyData.length / 2; i++) {
+            const barHeight = (frequencyData[i] / 255) * canvas.height;
+            
+            // Color gradient based on frequency
+            const hue = (i / (frequencyData.length / 2)) * 120 + 120; // Green to cyan
+            ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+            
+            ctx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
+            x += barWidth;
+        }
     }
     
     /**
@@ -254,10 +894,14 @@ class SimonGame {
         
         const settings = this.difficultySettings[this.difficulty];
         
+        // Get tempo-adjusted delays
+        const sequenceDelay = this.audioManager.getTempoAdjustedDelay(settings.sequenceDelay);
+        const gapDelay = this.audioManager.getTempoAdjustedDelay(settings.gapDelay);
+        
         // Show each button in sequence with appropriate timing
         for (let i = 0; i < this.sequence.length; i++) {
-            await this.delay(settings.gapDelay);
-            await this.highlightButton(this.sequence[i], settings.sequenceDelay);
+            await this.delay(gapDelay);
+            await this.highlightButton(this.sequence[i], sequenceDelay);
         }
         
         // Brief pause before allowing player input
@@ -276,6 +920,7 @@ class SimonGame {
         const button = document.getElementById(`btn-${buttonIndex}`);
         button.classList.add('active'); // Add CSS class for visual highlight
         this.playSound(buttonIndex);    // Play corresponding sound
+        this.showVisualIndicator(buttonIndex, duration); // Show visual indicator for accessibility
         
         await this.delay(duration);
         button.classList.remove('active'); // Remove highlight
@@ -321,54 +966,23 @@ class SimonGame {
     }
     
     /**
-     * Play a musical tone for a specific button using Web Audio API
+     * Play a musical tone for a specific button using the AudioManager
      * @param {number} buttonIndex - Index of button (0-3) to play sound for
      */
     playSound(buttonIndex) {
-        if (!this.soundEnabled || !this.audioContext) return;
+        if (!this.soundEnabled) return;
         
-        // Create oscillator for tone generation
-        const oscillator = this.audioContext.createOscillator();
-        const gainNode = this.audioContext.createGain();
-        
-        // Connect audio nodes
-        oscillator.connect(gainNode);
-        gainNode.connect(this.audioContext.destination);
-        
-        // Set frequency and waveform
-        oscillator.frequency.setValueAtTime(this.buttonFrequencies[buttonIndex], this.audioContext.currentTime);
-        oscillator.type = 'sine'; // Smooth sine wave
-        
-        // Configure volume envelope (attack and decay)
-        gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
-        
-        // Play the tone for 0.3 seconds
-        oscillator.start(this.audioContext.currentTime);
-        oscillator.stop(this.audioContext.currentTime + 0.3);
+        // Use the new AudioManager for advanced sound playback
+        this.audioManager.playSound(buttonIndex, 0.3);
     }
     
     /**
-     * Play error sound effect using sawtooth wave for harsh tone
+     * Play error sound effect using the AudioManager
      */
     playErrorSound() {
-        if (!this.soundEnabled || !this.audioContext) return;
+        if (!this.soundEnabled) return;
         
-        const oscillator = this.audioContext.createOscillator();
-        const gainNode = this.audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(this.audioContext.destination);
-        
-        // Low frequency sawtooth wave for unpleasant error sound
-        oscillator.frequency.setValueAtTime(150, this.audioContext.currentTime);
-        oscillator.type = 'sawtooth';
-        
-        gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.5);
-        
-        oscillator.start(this.audioContext.currentTime);
-        oscillator.stop(this.audioContext.currentTime + 0.5);
+        this.audioManager.playErrorSound();
     }
     
     /**
@@ -700,8 +1314,16 @@ class SimonGame {
 document.addEventListener('DOMContentLoaded', () => {
     // Resume audio context on first user interaction (browser requirement)
     document.addEventListener('click', () => {
-        if (window.game && window.game.audioContext && window.game.audioContext.state === 'suspended') {
-            window.game.audioContext.resume();
+        if (window.game) {
+            // Resume legacy audio context
+            if (window.game.audioContext && window.game.audioContext.state === 'suspended') {
+                window.game.audioContext.resume();
+            }
+            // Resume AudioManager audio context
+            if (window.game.audioManager && window.game.audioManager.audioContext && 
+                window.game.audioManager.audioContext.state === 'suspended') {
+                window.game.audioManager.audioContext.resume();
+            }
         }
     }, { once: true }); // Only run once
     
