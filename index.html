@@ -24,20 +24,24 @@
         <!-- 2x2 grid of colored game buttons -->
         <div class="game-board" id="game-board">
             <!-- Green button (top-left) - index 0 -->
-            <button class="game-button green" id="btn-0" data-color="0" aria-label="Green button">
+            <button class="game-button green" id="btn-0" data-color="0" aria-label="Green button - Circle">
                 <span class="sr-only">Green</span>
+                <span class="shape-indicator" aria-hidden="true"></span>
             </button>
             <!-- Red button (top-right) - index 1 -->
-            <button class="game-button red" id="btn-1" data-color="1" aria-label="Red button">
+            <button class="game-button red" id="btn-1" data-color="1" aria-label="Red button - Triangle">
                 <span class="sr-only">Red</span>
+                <span class="shape-indicator" aria-hidden="true"></span>
             </button>
             <!-- Yellow button (bottom-left) - index 2 -->
-            <button class="game-button yellow" id="btn-2" data-color="2" aria-label="Yellow button">
+            <button class="game-button yellow" id="btn-2" data-color="2" aria-label="Yellow button - Square">
                 <span class="sr-only">Yellow</span>
+                <span class="shape-indicator" aria-hidden="true"></span>
             </button>
             <!-- Blue button (bottom-right) - index 3 -->
-            <button class="game-button blue" id="btn-3" data-color="3" aria-label="Blue button">
+            <button class="game-button blue" id="btn-3" data-color="3" aria-label="Blue button - Diamond">
                 <span class="sr-only">Blue</span>
+                <span class="shape-indicator" aria-hidden="true"></span>
             </button>
         </div>
 
@@ -46,17 +50,25 @@
             <div class="message-text" id="message-text">Press Any Key to Start</div>
         </div>
 
-        <!-- Control panel with sound toggle, difficulty selector, audio settings, and weather -->
+        <!-- Control panel with sound toggle, difficulty selector, theme selector, and weather -->
         <div class="game-controls">
             <!-- Sound on/off toggle button -->
             <button class="control-btn" id="volume-btn" aria-label="Toggle sound">🔊</button>
             <!-- Audio settings button -->
             <button class="control-btn audio-btn" id="audio-settings-btn" aria-label="Audio settings">🎵</button>
             <!-- Difficulty level selector -->
-            <select class="difficulty-select" id="difficulty">
+            <select class="difficulty-select" id="difficulty" aria-label="Select difficulty">
                 <option value="easy">Easy</option>
                 <option value="normal" selected>Normal</option>
                 <option value="hard">Hard</option>
+            </select>
+            <!-- Theme selector -->
+            <select class="theme-select" id="theme-select" aria-label="Select theme">
+                <option value="classic">Classic</option>
+                <option value="cyberpunk">Cyberpunk</option>
+                <option value="synthwave">Synthwave</option>
+                <option value="high-contrast">High Contrast</option>
+                <option value="colorblind">Colorblind</option>
             </select>
             <!-- Weather information button -->
             <button class="control-btn weather-btn" id="weather-btn" aria-label="Show current weather">🌤️</button>
