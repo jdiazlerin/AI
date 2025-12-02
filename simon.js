@@ -23,8 +23,10 @@ class SimonGame {
         
         // Weather functionality
         this.weatherData = null;     // Cached weather data
-        this.weatherLocation = 'Lanchester, Durham, UK'; // Weather location
-        this.weatherCoords = { lat: 54.7704, lon: -1.7584 }; // Lanchester coordinates
+        this.weatherLocation = 'London, UK'; // Default weather location
+        this.weatherCoords = { lat: 51.5074, lon: -0.1278 }; // London coordinates (default)
+        this.userLocation = null;    // User's current location if available
+        this.useUserLocation = false; // Whether to use user's location
         
         // Load high score from localStorage or default to 0
         this.highScore = parseInt(localStorage.getItem('simonHighScore')) || 0;
@@ -381,17 +383,27 @@ class SimonGame {
     
     /**
      * Show weather modal and fetch current weather data
+     * First attempts to get user's current location, falls back to London, UK
      */
     async showWeatherModal() {
         const modal = document.getElementById('weather-modal');
         const weatherInfo = document.getElementById('weather-info');
+        const weatherTitle = document.getElementById('weather-title');
         
         modal.classList.add('show');
         
         // Show loading state
-        weatherInfo.innerHTML = '<div class="weather-loading">Loading weather data...</div>';
+        weatherInfo.innerHTML = '<div class="weather-loading">Getting your location...</div>';
+        weatherTitle.textContent = 'WEATHER';
         
         try {
+            // Try to get user's current location first
+            await this.getCurrentLocation();
+            
+            // Update loading message
+            weatherInfo.innerHTML = '<div class="weather-loading">Loading weather data...</div>';
+            
+            // Fetch weather data for determined location
             await this.fetchWeatherData();
             this.displayWeatherData();
         } catch (error) {
@@ -409,12 +421,75 @@ class SimonGame {
     }
     
     /**
+     * Get user's current location using Geolocation API
+     * Falls back to London, UK if geolocation fails or is denied
+     */
+    async getCurrentLocation() {
+        return new Promise((resolve) => {
+            // Check if geolocation is supported
+            if (!navigator.geolocation) {
+                console.log('Geolocation not supported, using London as default');
+                this.setDefaultLocation();
+                resolve();
+                return;
+            }
+            
+            // Set timeout for geolocation request
+            const timeoutId = setTimeout(() => {
+                console.log('Geolocation timeout, using London as default');
+                this.setDefaultLocation();
+                resolve();
+            }, 5000); // 5 second timeout
+            
+            // Request current position
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    clearTimeout(timeoutId);
+                    // Successfully got user's location
+                    this.userLocation = {
+                        lat: position.coords.latitude,
+                        lon: position.coords.longitude
+                    };
+                    this.weatherCoords = this.userLocation;
+                    this.useUserLocation = true;
+                    this.weatherLocation = 'Your Location';
+                    console.log('Using user location:', this.userLocation);
+                    resolve();
+                },
+                (error) => {
+                    clearTimeout(timeoutId);
+                    // Geolocation failed or denied
+                    console.log('Geolocation error:', error.message, '- using London as default');
+                    this.setDefaultLocation();
+                    resolve();
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 5000,
+                    maximumAge: 300000 // Cache location for 5 minutes
+                }
+            );
+        });
+    }
+    
+    /**
+     * Set default location to London, UK
+     */
+    setDefaultLocation() {
+        this.weatherCoords = { lat: 51.5074, lon: -0.1278 }; // London coordinates
+        this.weatherLocation = 'London, UK';
+        this.useUserLocation = false;
+        this.userLocation = null;
+    }
+    
+    /**
      * Fetch weather data from OpenWeatherMap API (free tier)
-     * Uses coordinates for Lanchester, Durham, UK
+     * Uses either user's current location or London, UK as fallback
      */
     async fetchWeatherData() {
         // Using OpenWeatherMap free API - no API key required for basic current weather
         // Note: For production, you should get an API key from openweathermap.org
+        // Uses either user's current location or London, UK as fallback
         const { lat, lon } = this.weatherCoords;
         const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=demo`;
         
@@ -444,8 +519,8 @@ class SimonGame {
         const temperature = Math.round(Math.random() * 20 + 2); // 2-22°C range for UK winter
         
         return {
-            name: 'Lanchester',
-            sys: { country: 'GB' },
+            name: this.useUserLocation ? 'Your Location' : 'London',
+            sys: { country: this.useUserLocation ? '??' : 'GB' },
             main: {
                 temp: temperature,
                 feels_like: temperature - 2,
@@ -471,6 +546,7 @@ class SimonGame {
      */
     displayWeatherData() {
         const weatherInfo = document.getElementById('weather-info');
+        const weatherTitle = document.getElementById('weather-title');
         
         if (!this.weatherData) {
             weatherInfo.innerHTML = '<div class="weather-error">No weather data available</div>';
@@ -479,6 +555,13 @@ class SimonGame {
         
         const { main, weather, wind, name, sys } = this.weatherData;
         const condition = weather[0];
+        
+        // Update modal title based on location type
+        if (this.useUserLocation) {
+            weatherTitle.textContent = 'YOUR LOCATION';
+        } else {
+            weatherTitle.textContent = 'LONDON WEATHER';
+        }
         
         // Format wind direction
         const getWindDirection = (degrees) => {
