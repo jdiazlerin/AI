@@ -46,10 +46,12 @@
             <div class="message-text" id="message-text">Press Any Key to Start</div>
         </div>
 
-        <!-- Control panel with sound toggle, difficulty selector, and weather -->
+        <!-- Control panel with sound toggle, difficulty selector, audio settings, and weather -->
         <div class="game-controls">
             <!-- Sound on/off toggle button -->
             <button class="control-btn" id="volume-btn" aria-label="Toggle sound">🔊</button>
+            <!-- Audio settings button -->
+            <button class="control-btn audio-btn" id="audio-settings-btn" aria-label="Audio settings">🎵</button>
             <!-- Difficulty level selector -->
             <select class="difficulty-select" id="difficulty">
                 <option value="easy">Easy</option>
@@ -58,6 +60,89 @@
             </select>
             <!-- Weather information button -->
             <button class="control-btn weather-btn" id="weather-btn" aria-label="Show current weather">🌤️</button>
+        </div>
+        
+        <!-- Visual audio indicators for accessibility (hearing impaired) -->
+        <div class="visual-indicators" id="visual-indicators">
+            <div class="visual-indicator green" id="visual-indicator-0"></div>
+            <div class="visual-indicator red" id="visual-indicator-1"></div>
+            <div class="visual-indicator yellow" id="visual-indicator-2"></div>
+            <div class="visual-indicator blue" id="visual-indicator-3"></div>
+        </div>
+    </div>
+
+    <!-- Audio Settings Modal -->
+    <div class="audio-modal-overlay" id="audio-settings-modal">
+        <div class="audio-modal-content">
+            <div class="audio-modal-header">
+                <h3 class="audio-title">AUDIO SETTINGS</h3>
+                <button class="audio-close-btn" id="audio-settings-close-btn" aria-label="Close audio settings">&times;</button>
+            </div>
+            
+            <div class="audio-settings-body">
+                <!-- Sound Pack Selector -->
+                <div class="setting-group">
+                    <label for="sound-pack-select" class="setting-label">Sound Pack</label>
+                    <select class="setting-select" id="sound-pack-select">
+                        <option value="classic">Classic Tones</option>
+                        <option value="retro8bit">8-Bit Retro</option>
+                        <option value="nature">Nature Sounds</option>
+                        <option value="scifi">Sci-Fi</option>
+                        <option value="percussion">Percussion</option>
+                        <option value="musical">Musical</option>
+                    </select>
+                    <p class="setting-description" id="sound-pack-description">Pure sine wave musical notes</p>
+                </div>
+                
+                <!-- Master Volume -->
+                <div class="setting-group">
+                    <label for="master-volume" class="setting-label">Master Volume</label>
+                    <div class="slider-container">
+                        <input type="range" id="master-volume" class="volume-slider" min="0" max="100" value="70">
+                        <span class="volume-value" id="master-volume-label">70%</span>
+                    </div>
+                </div>
+                
+                <!-- Effects Volume -->
+                <div class="setting-group">
+                    <label for="effects-volume" class="setting-label">Effects Volume</label>
+                    <div class="slider-container">
+                        <input type="range" id="effects-volume" class="volume-slider" min="0" max="100" value="80">
+                        <span class="volume-value" id="effects-volume-label">80%</span>
+                    </div>
+                </div>
+                
+                <!-- Tempo Control -->
+                <div class="setting-group">
+                    <label for="tempo-slider" class="setting-label">Sequence Speed</label>
+                    <div class="slider-container">
+                        <input type="range" id="tempo-slider" class="tempo-slider" min="50" max="200" value="100">
+                        <span class="tempo-value" id="tempo-label">1.0x</span>
+                    </div>
+                    <p class="setting-hint">Slower &lt;--- ---&gt; Faster</p>
+                </div>
+                
+                <!-- Visual Indicators Toggle -->
+                <div class="setting-group toggle-group">
+                    <label for="visual-indicators-toggle" class="setting-label">Visual Audio Indicators</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="visual-indicators-toggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <p class="setting-hint">Shows visual cues for accessibility</p>
+                </div>
+                
+                <!-- Audio Visualization -->
+                <div class="setting-group">
+                    <label class="setting-label">Audio Visualization</label>
+                    <canvas id="audio-visualization" class="audio-canvas"></canvas>
+                </div>
+                
+                <!-- Preview Button -->
+                <div class="setting-group">
+                    <button class="preview-btn" id="preview-sound-btn">🎵 Preview Sounds</button>
+                </div>
+            </div>
         </div>
     </div>
 
