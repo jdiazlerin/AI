@@ -1,0 +1,51 @@
+# =============================================================================
+# Simon Memory Game - Terraform Configuration Example
+# =============================================================================
+
+# Basic Infrastructure Configuration
+aws_region   = "eu-west-1"
+environment  = "dev"
+project_name = "simon-game"
+
+# Domain Configuration (Optional)
+# Uncomment and set your custom domain if you have one
+# domain_name = "simon-game.example.com"
+
+# Security and Protection Settings
+enable_waf              = true
+enable_logging          = true  
+enable_monitoring       = true
+rate_limit_requests     = 2000
+
+# CloudFront Configuration
+price_class = "PriceClass_100"  # US, Canada, Europe
+
+# CORS Configuration
+cors_allowed_origins = ["*"]
+
+# =============================================================================
+# Environment-Specific Examples:
+# =============================================================================
+
+# Development Environment
+# aws_region   = "eu-west-1"
+# environment  = "dev"
+# enable_waf   = false
+# price_class  = "PriceClass_100"
+# rate_limit_requests = 1000
+
+# Staging Environment  
+# aws_region   = "eu-west-1"
+# environment  = "staging"
+# enable_waf   = true
+# price_class  = "PriceClass_200"
+# rate_limit_requests = 2000
+# domain_name  = "staging.simon-game.example.com"
+
+# Production Environment
+# aws_region   = "eu-west-1" 
+# environment  = "prod"
+# enable_waf   = true
+# price_class  = "PriceClass_All"
+# rate_limit_requests = 5000
+# domain_name  = "simon-game.example.com"
